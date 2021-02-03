@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Svg.Model.Painting;
 using Svg.Model.Primitives.CanvasCommands;
@@ -53,6 +54,11 @@ namespace Svg.Model.Primitives
         public void DrawTextOnPath(string text, Path path, float hOffset, float vOffset, Paint paint)
         {
             Commands?.Add(new DrawTextOnPathCanvasCommand(text, path, hOffset, vOffset, paint));
+        }
+
+        internal void DrawTextDecoration(string text, float x, float y, Paint paint, SvgTextDecoration textDecoration)
+        {
+            Commands?.Add(new DrawTextDecorationCanvasCommand(text, x, y, paint, textDecoration));
         }
 
         public void SetMatrix(Matrix matrix)

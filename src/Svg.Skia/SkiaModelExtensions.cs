@@ -1094,6 +1094,57 @@ namespace Svg.Skia
                         }
                     }
                     break;
+                case DrawTextDecorationCanvasCommand drawTextDecorationCanvasCommand:
+                    {
+                        if (drawTextDecorationCanvasCommand.Paint is { })
+                        {
+                            var text = drawTextDecorationCanvasCommand.Text;
+                            var x = drawTextDecorationCanvasCommand.X;
+                            var y = drawTextDecorationCanvasCommand.Y;
+                            var paint = drawTextDecorationCanvasCommand.Paint.ToSKPaint();
+                            paint.StrokeCap = SKStrokeCap.Square;
+
+                            SKRect bounds = new SKRect();
+                            paint.MeasureText(text, ref bounds);
+
+                            float lineHeight;
+
+                            switch (drawTextDecorationCanvasCommand.TextDecoration)
+                            {
+                                case SvgTextDecoration.Underline:
+                                    lineHeight = y + (paint.FontMetrics.UnderlinePosition ?? paint.FontMetrics.Descent);
+                                    paint.StrokeWidth = paint.FontMetrics.UnderlineThickness ?? 0;
+                                    break;
+                                case SvgTextDecoration.Overline:
+                                    lineHeight = y + paint.FontMetrics.Ascent;
+                                    paint.StrokeWidth = paint.FontMetrics.UnderlineThickness ?? 0;
+                                    break;
+                                case SvgTextDecoration.LineThrough:
+                                    lineHeight = y + (paint.FontMetrics.StrikeoutPosition ?? paint.MeasureText(text) / 2);
+                                    paint.StrokeWidth = paint.FontMetrics.StrikeoutThickness ?? 0;
+                                    break;
+                                default:
+                                    // TODO: Blink
+                                    // TODO: Inherit
+                                    return;
+                            };
+
+                            if (drawTextDecorationCanvasCommand.Paint.Style == PaintStyle.Stroke)
+                            {
+                                paint.StrokeWidth += drawTextDecorationCanvasCommand.Paint.StrokeWidth;
+                            }
+
+                            float xOffset = paint.TextAlign switch
+                            {
+                                SKTextAlign.Left => bounds.Left,
+                                SKTextAlign.Right => 0,
+                                SKTextAlign.Center => bounds.Left - bounds.MidX,
+                            };
+
+                            skCanvas.DrawLine(x + xOffset, lineHeight, x + xOffset + bounds.Width, lineHeight, paint);
+                        }
+                    }
+                    break;
                 case DrawTextCanvasCommand drawTextCanvasCommand:
                     {
                         if (drawTextCanvasCommand.Paint is { })

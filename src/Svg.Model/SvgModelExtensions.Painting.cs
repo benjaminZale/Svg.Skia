@@ -1183,21 +1183,6 @@ namespace Svg.Model
 
             skPaint.TextAlign = ToTextAlign(svgText.TextAnchor);
 
-            if (svgText.TextDecoration.HasFlag(SvgTextDecoration.Underline))
-            {
-                // TODO: Implement SvgTextDecoration.Underline
-            }
-
-            if (svgText.TextDecoration.HasFlag(SvgTextDecoration.Overline))
-            {
-                // TODO: Implement SvgTextDecoration.Overline
-            }
-
-            if (svgText.TextDecoration.HasFlag(SvgTextDecoration.LineThrough))
-            {
-                // TODO: Implement SvgTextDecoration.LineThrough
-            }
-
             float fontSize;
             var fontSizeUnit = svgText.FontSize;
             if (fontSizeUnit == SvgUnit.None || fontSizeUnit == SvgUnit.Empty)

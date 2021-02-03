@@ -232,31 +232,43 @@ namespace Svg.Model.Drawables.Elements
             // TODO: Calculate correct bounds.
             var skBounds = skOwnerBounds;
 
-            if (SvgModelExtensions.IsValidFill(svgTextBase))
+            bool hasFill = SvgModelExtensions.IsValidFill(svgTextBase);
+            var fillPaint = hasFill ? SvgModelExtensions.GetFillPaint(svgTextBase, skBounds, AssetLoader, ignoreAttributes) : null;
+
+            bool hasStroke = SvgModelExtensions.IsValidStroke(svgTextBase, skBounds);
+            var strokePaint = hasStroke ? SvgModelExtensions.GetStrokePaint(svgTextBase, skBounds, AssetLoader, ignoreAttributes) : null;
+
+            // Overline and underline are applied before the text is drawn.
+            if (svgTextBase.TextDecoration.HasFlag(SvgTextDecoration.Overline))
             {
-                var skPaint = SvgModelExtensions.GetFillPaint(svgTextBase, skBounds, AssetLoader, ignoreAttributes);
-                if (skPaint is { })
+                if (strokePaint is { })
                 {
-                    SvgModelExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
-#if USE_TEXT_SHAPER
-                    var typeface = skPaint.Typeface;
-                    if (typeface is { })
-                    {
-                        using var skShaper = new SKShaper(skPaint.Typeface);
-                        skCanvas.DrawShapedText(skShaper, text, x, y, skPaint);
-                    }
-#else
-                    skCanvas.DrawText(text, x, y, skPaint);
-#endif
+                    skCanvas.DrawTextDecoration(text, x, y, strokePaint, SvgTextDecoration.Overline);
+                }
+
+                if (fillPaint is { })
+                {
+                    skCanvas.DrawTextDecoration(text, x, y, fillPaint, SvgTextDecoration.Overline);
                 }
             }
 
-            if (SvgModelExtensions.IsValidStroke(svgTextBase, skBounds))
+            if (svgTextBase.TextDecoration.HasFlag(SvgTextDecoration.Underline))
             {
-                var skPaint = SvgModelExtensions.GetStrokePaint(svgTextBase, skBounds, AssetLoader, ignoreAttributes);
-                if (skPaint is { })
+                if (strokePaint is { })
                 {
-                    SvgModelExtensions.SetPaintText(svgTextBase, skBounds, skPaint);
+                    skCanvas.DrawTextDecoration(text, x, y, strokePaint, SvgTextDecoration.Underline);
+                }
+
+                if (fillPaint is { })
+                {
+                    skCanvas.DrawTextDecoration(text, x, y, fillPaint, SvgTextDecoration.Underline);
+                }
+            }
+
+
+            if (fillPaint is { })
+            {
+                SvgModelExtensions.SetPaintText(svgTextBase, skBounds, fillPaint);
 #if USE_TEXT_SHAPER
                     var typeface = skPaint.Typeface;
                     if (typeface is { })
@@ -265,8 +277,37 @@ namespace Svg.Model.Drawables.Elements
                         skCanvas.DrawShapedText(skShaper, text, x, y, skPaint);
                     }
 #else
-                    skCanvas.DrawText(text, x, y, skPaint);
+                skCanvas.DrawText(text, x, y, fillPaint);
 #endif
+            }
+
+            if (strokePaint is { })
+            {
+                SvgModelExtensions.SetPaintText(svgTextBase, skBounds, strokePaint);
+#if USE_TEXT_SHAPER
+                    var typeface = skPaint.Typeface;
+                    if (typeface is { })
+                    {
+                        using var skShaper = new SKShaper(skPaint.Typeface);
+                        skCanvas.DrawShapedText(skShaper, text, x, y, skPaint);
+                    }
+#else
+                skCanvas.DrawText(text, x, y, strokePaint);
+#endif
+            }
+
+
+            // Line through is applied after the text is drawn.
+            if (svgTextBase.TextDecoration.HasFlag(SvgTextDecoration.LineThrough))
+            {
+                if (strokePaint is { })
+                {
+                    skCanvas.DrawTextDecoration(text, x, y, strokePaint, SvgTextDecoration.LineThrough);
+                }
+
+                if (fillPaint is { })
+                {
+                    skCanvas.DrawTextDecoration(text, x, y, fillPaint, SvgTextDecoration.LineThrough);
                 }
             }
         }
